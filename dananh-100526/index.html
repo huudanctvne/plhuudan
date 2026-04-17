@@ -3575,6 +3575,7 @@
         font-family: MUZUVlZJUEFsYnJhRGlzcGxheSMaWdodCdGY;
         font-size: 27px;
         font-weight: bold;
+        margin-top: 30px;
         line-height: 1.7;
         color: rgb(128, 0, 32);
         text-transform: uppercase;
@@ -3802,8 +3803,35 @@
         top: 57px;
         left: 229.5px;
       }
+
+      /* Định dạng dòng chữ Dresscode mới */
+      #DRESSCODE_TEXT {
+        width: 396px; /* Bằng chiều rộng của GROUP55 */
+        top: 70px; /* Nằm dưới chữ DRESS CODE */
+        left: 0;
+        z-index: 10;
+      }
+
+      #DRESSCODE_TEXT .ladi-headline {
+        font-family:
+          "Dancing Script", cursive; /* Font chữ nghệ thuật giống phần Story */
+        font-size: 20px;
+        color: rgb(128, 0, 32); /* Màu đỏ đô chuẩn thiệp */
+        text-align: center;
+        font-style: italic;
+        font-weight: 600;
+      }
+
+      /* Xóa hoặc comment lại các dòng cũ này để tránh rác code */
+      #BOX12,
+      #BOX13,
+      #BOX14,
+      #BOX15 {
+        display: none !important;
+      }
+
       #BOX15 > .ladi-box {
-        background-color: rgb(98, 54, 24);
+        background-color: rgb(128, 0, 32);
       }
       #BOX15 > .ladi-box,
       #BOX14 > .ladi-box,
@@ -5969,20 +5997,14 @@
         <div class="ladi-container">
           <div id="GROUP55" class="ladi-element">
             <div class="ladi-group">
-              <div id="BOX15" class="ladi-element">
-                <div class="ladi-box ladi-transition"></div>
-              </div>
-              <div id="BOX14" class="ladi-element">
-                <div class="ladi-box ladi-transition"></div>
-              </div>
               <div id="HEADLINE68" class="ladi-element data-aos">
                 <h3 class="ladi-headline ladi-transition">DRESS CODE</h3>
               </div>
-              <div id="BOX13" class="ladi-element">
-                <div class="ladi-box ladi-transition"></div>
-              </div>
-              <div id="BOX12" class="ladi-element">
-                <div class="ladi-box ladi-transition"></div>
+
+              <div id="DRESSCODE_TEXT" class="ladi-element">
+                <h3 class="ladi-headline">
+                  "Mặc trang phục bạn yêu, mang nụ cười bạn thích."
+                </h3>
               </div>
             </div>
           </div>
@@ -6071,7 +6093,7 @@
               </div>
               <div id="HEADLINE91" class="ladi-element data-aos">
                 <h3 class="ladi-headline ladi-transition">
-                  10:00<br />khai tiệc<br />
+                  11:00<br />khai tiệc<br />
                 </h3>
               </div>
             </div>
@@ -6537,7 +6559,8 @@
           <div id="tab-play" class="gs-tab-content">
             <h3>Gợi ý Vui chơi & Ẩm thực</h3>
             <p>
-              Nếu bạn đến sớm, đừng bỏ lỡ những nét đặc trưng này của CT bên cạnh đám cưới Đan & Anh nhé!
+              Nếu bạn đến sớm, đừng bỏ lỡ những nét đặc trưng này của CT bên
+              cạnh đám cưới Đan & Anh nhé!
             </p>
 
             <div class="service-list">
@@ -8063,12 +8086,36 @@
           resetAuto();
         };
 
-        // swipe
+        // swipe - Đã tối ưu khóa cuộn trang khi vuốt ngang
         let startX = 0;
+        let startY = 0; // Thêm biến lưu tọa độ Y
 
-        container.addEventListener("touchstart", (e) => {
-          startX = e.touches[0].clientX;
-        });
+        container.addEventListener(
+          "touchstart",
+          (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+          },
+          { passive: false },
+        );
+
+        // Thêm sự kiện touchmove để bắt chuyển động lúc đang vuốt
+        container.addEventListener(
+          "touchmove",
+          (e) => {
+            let currentX = e.touches[0].clientX;
+            let currentY = e.touches[0].clientY;
+
+            let diffX = Math.abs(currentX - startX);
+            let diffY = Math.abs(currentY - startY);
+
+            // Trọng tâm ở đây: Nếu vuốt ngang nhiều hơn vuốt dọc -> Chặn trình duyệt cuộn trang
+            if (diffX > diffY) {
+              e.preventDefault();
+            }
+          },
+          { passive: false },
+        ); // Phải có passive: false thì preventDefault mới hoạt động
 
         container.addEventListener("touchend", (e) => {
           let endX = e.changedTouches[0].clientX;
