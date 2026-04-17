@@ -6509,6 +6509,17 @@
                 >
               </div>
               <div class="service-item">
+                <strong>Song Ngư Homestay</strong>
+                <p>~5p để di chuyển đến tiệc. Đủ tiện nghi để nghỉ ngơi</p>
+                <a href="tel:0975124848" class="service-link">🤙 Đặt chỗ</a>
+                <a
+                  href="https://maps.app.goo.gl/PZRbGzu6aNqnHauk8"
+                  target="_blank"
+                  class="service-link map-btn"
+                  >📍 Vị trí</a
+                >
+              </div>
+              <div class="service-item">
                 <strong>Khách sạn Lion 11</strong>
                 <p>
                   ~30p để di chuyển đến tiệc. Cao cấp, gần trung tâm TP, Bến
@@ -7811,9 +7822,10 @@
     <title>Toggle Music với Icon Tròn Xoay</title>
     <style>
       /* Nút tròn, nền đen mờ */
+      /* Nút tròn, nền đen mờ */
       #toggle-music {
         position: fixed;
-        bottom: 20px;
+        bottom: 50px; /* Đã dời lên cao hơn xíu */
         left: 20px;
         width: 40px;
         height: 40px;
@@ -7831,6 +7843,22 @@
       }
       #toggle-music:hover {
         background: rgba(0, 0, 0, 0.5);
+      }
+
+      /* Khung chữ đếm ngược */
+      #music-countdown {
+        position: fixed;
+        bottom: 58px; /* Căn giữa so với cái nút */
+        left: 70px; /* Nằm ngay bên phải cái nút */
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-family: "Open Sans", sans-serif;
+        font-size: 12px;
+        z-index: 1000;
+        pointer-events: none; /* Không cản trở nếu lỡ bấm trúng */
+        transition: opacity 0.5s ease;
       }
 
       /* Keyframes xoay */
@@ -7873,13 +7901,18 @@
 
     <!-- Toggle button -->
     <button id="toggle-music" aria-label="Bật/tắt nhạc">🔇</button>
+    <div id="music-countdown">Nhạc nền sau 5s</div>
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const audio = document.getElementById("background-music");
         const btn = document.getElementById("toggle-music");
+        const countdownEl = document.getElementById("music-countdown");
 
         audio.volume = 0.8;
+        let timeLeft = 5; // Set 5 giây
+        let timer = null;
+        let isMusicHandled = false;
 
         function startRotate() {
           btn.style.animation = "rotate 2s linear infinite";
@@ -7888,8 +7921,42 @@
           btn.style.animation = "none";
         }
 
-        // Khi user click button thì toggle play/pause
+        // Bắt đầu đếm ngược
+        function startCountdown() {
+          timer = setInterval(() => {
+            timeLeft--;
+            if (countdownEl) {
+              countdownEl.textContent = `Nhạc nền sau ${timeLeft}s`;
+            }
+
+            // Khi hết 5 giây
+            if (timeLeft <= 0) {
+              clearInterval(timer);
+              if (countdownEl) countdownEl.style.opacity = "0"; // Ẩn dòng chữ đi
+
+              if (!isMusicHandled && audio.paused) {
+                audio
+                  .play()
+                  .then(() => {
+                    btn.textContent = "🔊";
+                    startRotate();
+                    isMusicHandled = true;
+                  })
+                  .catch(() => {
+                    /* Nếu khách chưa tương tác (chạm/vuốt màn hình) thì trình duyệt sẽ chặn tự động phát. 
+                     Không sao, khi khách lướt web hệ thống sẽ tự phát ở event bên dưới. */
+                  });
+              }
+            }
+          }, 1000);
+        }
+
+        // Nếu khách chủ động bấm nút LOA trước khi hết 5 giây
         btn.addEventListener("click", () => {
+          isMusicHandled = true;
+          clearInterval(timer); // Hủy đếm ngược
+          if (countdownEl) countdownEl.style.opacity = "0"; // Ẩn chữ ngay lập tức
+
           if (audio.paused) {
             audio.play();
             btn.textContent = "🔊";
@@ -7901,23 +7968,28 @@
           }
         });
 
-        // Đảm bảo autoplay khi user lần đầu tương tác (nếu cần)
-        function tryPlay() {
-          if (audio.paused) {
+        // Bắt đầu đếm ngược ngay khi web load xong
+        startCountdown();
+
+        // Dự phòng: Nếu sau 5s mà web bị trình duyệt chặn phát nhạc (do khách chưa chạm tay vào màn hình)
+        // thì ngay khi khách vuốt/chạm lần đầu, nhạc sẽ tự động nổi lên.
+        function playOnFirstInteract() {
+          if (!isMusicHandled && timeLeft <= 0 && audio.paused) {
             audio
               .play()
               .then(() => {
                 btn.textContent = "🔊";
                 startRotate();
+                isMusicHandled = true;
               })
-              .catch(() => {
-                /* bị chặn thì thôi */
-              });
+              .catch(() => {});
           }
         }
-        window.addEventListener("scroll", tryPlay, { once: true });
-        document.addEventListener("click", tryPlay, { once: true });
-        document.addEventListener("touchstart", tryPlay, { once: true });
+        window.addEventListener("scroll", playOnFirstInteract, { once: true });
+        document.addEventListener("touchstart", playOnFirstInteract, {
+          once: true,
+        });
+        document.addEventListener("click", playOnFirstInteract, { once: true });
       });
     </script>
 
@@ -8079,234 +8151,6 @@
       }
     </script>
 
-    <div id="invitation-btn" title="Mở thiệp mời">
-      <div class="btn-icon">💌</div>
-      <span>Mở Thiệp</span>
-    </div>
-
-    <div id="invitation-popup">
-      <div class="popup-overlay"></div>
-
-      <div class="scene">
-        <div class="card-wrapper" id="wedding-card">
-          <div
-            class="face-front"
-            style="background-image: url(&quot;scr/img/thiep_truoc.jpg&quot;)"
-          >
-            <div class="click-hint">Chạm để lật mặt sau 👉</div>
-          </div>
-
-          <div class="face-back">
-            <div
-              class="inner-mid"
-              style="background-image: url(&quot;scr/img/thiep_trong.jpg&quot;)"
-            ></div>
-
-            <div class="flap bottom-panel">
-              <div
-                class="flap-face flap-outer"
-                style="background-image: url(&quot;scr/img/thiep_sau.jpg&quot;)"
-              ></div>
-              <div
-                class="flap-face flap-inner"
-                style="
-                  background-image: url(&quot;scr/img/thiep_trong.jpg&quot;);
-                "
-              ></div>
-            </div>
-
-            <div class="flap top-flap">
-              <div
-                class="flap-face flap-outer"
-                style="
-                  background-image: url(&quot;scr/img/thiep_truoc_nap.jpg&quot;);
-                "
-              ></div>
-              <div
-                class="flap-face flap-inner"
-                style="
-                  background-image: url(&quot;scr/img/thiep_trong.jpg&quot;);
-                "
-              ></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button class="close-popup" id="close-invitation">&times;</button>
-    </div>
-
-    <style>
-      /* CSS CƠ BẢN */
-      #invitation-btn {
-        position: fixed;
-        bottom: 80px;
-        right: 20px;
-        z-index: 999;
-        background: rgb(128, 0, 32);
-        color: white;
-        padding: 10px 20px;
-        border-radius: 50px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        font-family: sans-serif;
-        font-weight: bold;
-      }
-
-      #invitation-popup {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        transition: opacity 0.5s ease;
-      }
-
-      .popup-overlay {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(4px);
-      }
-
-      /* KHÔNG GIAN 3D */
-      .scene {
-        width: 340px;
-        height: 240px;
-        perspective: 1500px;
-        z-index: 10001;
-      }
-      .card-wrapper {
-        width: 100%;
-        height: 100%;
-        position: relative;
-        transform-style: preserve-3d;
-        transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .face-front,
-      .face-back {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        backface-visibility: hidden;
-        border-radius: 4px;
-      }
-      .face-front {
-        background-size: cover;
-        z-index: 2;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      }
-      .face-back {
-        transform: rotateY(180deg);
-        transform-style: preserve-3d;
-      }
-
-      .card-wrapper.flipped {
-        transform: rotateY(180deg);
-      }
-
-      /* MẶT TRONG GIỮA */
-      .inner-mid {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background-size: 100% 250%;
-        background-position: center; /* 1/2.5 */
-      }
-
-      /* CÁC CÁNH GẬP */
-      .flap {
-        position: absolute;
-        width: 100%;
-        left: 0;
-        top: 0;
-        transform-style: preserve-3d;
-        transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .top-flap {
-        height: 50%;
-        transform-origin: top;
-        z-index: 10;
-      } /* Nắp đè lên */
-      .bottom-panel {
-        height: 100%;
-        transform-origin: bottom;
-        z-index: 5;
-      }
-
-      /* Trạng thái đóng (sau khi vừa xoay 180 độ) */
-      .card-wrapper.flipped .top-flap {
-        transform: rotateX(180deg);
-      }
-      .card-wrapper.flipped .bottom-panel {
-        transform: rotateX(-180deg);
-      }
-
-      /* Trạng thái bung ra (Opened) */
-      .card-wrapper.opened .top-flap {
-        transform: rotateX(0deg);
-      }
-      .card-wrapper.opened .bottom-panel {
-        transform: rotateX(0deg);
-      }
-
-      .flap-face {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        backface-visibility: hidden;
-      }
-
-      /* Background cắt ảnh dọc (0.5 - 1 - 1) */
-      .top-flap .flap-inner {
-        background-size: 100% 500%;
-        background-position: top;
-      }
-      .bottom-panel .flap-inner {
-        background-size: 100% 250%;
-        background-position: bottom;
-      }
-
-      /* Ảnh mặt ngoài khi đang gập */
-      .flap-outer {
-        transform: rotateX(180deg);
-        background-size: cover;
-      }
-
-      /* Nút X và Hint */
-      .close-popup {
-        position: absolute;
-        top: -45px;
-        right: 0;
-        background: none;
-        border: none;
-        color: white;
-        font-size: 40px;
-        cursor: pointer;
-      }
-      .click-hint {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        background: rgba(128, 0, 32, 0.8);
-        color: white;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 10px;
-        animation: pulse 1.5s infinite;
-      }
-    </style>
-
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const btn = document.getElementById("invitation-btn");
@@ -8357,6 +8201,5 @@
         overlay.onclick = closeInvitation;
       });
     </script>
-    
   </body>
 </html>
