@@ -4795,7 +4795,7 @@
       #BOX11 {
         width: 431px;
         height: 105px;
-        top: 232.821px;
+        top: 24px;
         left: -5.5px;
       }
       #BOX11 > .ladi-box {
@@ -7975,6 +7975,7 @@
         let timeLeft = 5; // Set 5 giây
         let timer = null;
         let isMusicHandled = false;
+        let isCanceledByClick = false; // Biến mới: Nhận diện khách đã chủ động chặn nhạc
 
         function startRotate() {
           btn.style.animation = "rotate 2s linear infinite";
@@ -7996,6 +7997,7 @@
               clearInterval(timer);
               if (countdownEl) countdownEl.style.opacity = "0"; // Ẩn dòng chữ đi
 
+              // Chỉ tự động phát nếu khách chưa từng đụng vào nút loa
               if (!isMusicHandled && audio.paused) {
                 audio
                   .play()
@@ -8005,20 +8007,36 @@
                     isMusicHandled = true;
                   })
                   .catch(() => {
-                    /* Nếu khách chưa tương tác (chạm/vuốt màn hình) thì trình duyệt sẽ chặn tự động phát. 
-                     Không sao, khi khách lướt web hệ thống sẽ tự phát ở event bên dưới. */
+                    // Lỗi do trình duyệt chặn auto-play khi chưa tương tác, sẽ được bắt ở sự kiện bên dưới
                   });
               }
             }
           }, 1000);
         }
 
-        // Nếu khách chủ động bấm nút LOA trước khi hết 5 giây
+        // Xử lý khi khách bấm nút loa
         btn.addEventListener("click", () => {
-          isMusicHandled = true;
-          clearInterval(timer); // Hủy đếm ngược
-          if (countdownEl) countdownEl.style.opacity = "0"; // Ẩn chữ ngay lập tức
+          // TRƯỜNG HỢP 1: Bấm chặn lúc đang đếm ngược (Lần bấm đầu tiên)
+          if (timeLeft > 0 && !isCanceledByClick) {
+            isMusicHandled = true; // Báo cho hệ thống là "tao lo vụ nhạc rồi, đừng auto-play nữa"
+            isCanceledByClick = true; // Đánh dấu là đã chặn thành công
+            clearInterval(timer); // Dừng bộ đếm 5s
+            if (countdownEl) countdownEl.style.opacity = "0"; // Ẩn chữ ngay
 
+            // Ép giữ trạng thái TẮT ÂM
+            audio.pause();
+            btn.textContent = "🔇";
+            stopRotate();
+            return; // Dừng lệnh, không chạy tiếp phần bật nhạc bên dưới
+          }
+
+          // TRƯỜNG HỢP 2: Bấm bình thường (Sau khi đã chặn, hoặc sau khi đếm ngược xong)
+          isMusicHandled = true;
+          isCanceledByClick = true;
+          clearInterval(timer);
+          if (countdownEl) countdownEl.style.opacity = "0";
+
+          // Nút toggle Bật/Tắt nhạc như bình thường
           if (audio.paused) {
             audio.play();
             btn.textContent = "🔊";
@@ -8482,6 +8500,270 @@
             true,
           ); // Chữ 'true' này là tuyệt chiêu bắt sự kiện từ trên không trung đó
         });
+      });
+    </script>
+
+    <button id="btn-open-3d" aria-label="Mở thiệp 3D">✉️</button>
+
+    <div id="popup-3d">
+      <div class="overlay-3d" id="close-overlay-3d"></div>
+      <button id="btn-close-3d">✖</button>
+
+      <div class="perspective-container">
+        <div class="envelope-3d" id="the-envelope-3d">
+          <div class="face-front"></div>
+
+          <div class="face-back">
+            <div class="env-card-inside"></div>
+
+            <div class="env-flap env-flap-bottom">
+              <div class="flap-outside flap-bot-out"></div>
+              <div class="flap-inside flap-bot-in"></div>
+            </div>
+
+            <div class="env-flap env-flap-top">
+              <div class="flap-outside flap-top-out"></div>
+              <div class="flap-inside flap-top-in"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      /* --- CSS CHO THIỆP 3D BẢN CHUẨN XOAY 3D (ĐÃ FIX LỖI ĐÈ MẶT E, F) --- */
+
+      #btn-open-3d {
+        position: fixed;
+        bottom: 100px;
+        left: 20px;
+        width: 40px;
+        height: 40px;
+        background: rgba(128, 0, 32, 0.8);
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: white;
+        cursor: pointer;
+        z-index: 10000;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        animation: pulse 2s infinite;
+      }
+
+      #popup-3d {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10001;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+      }
+      .overlay-3d {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+      }
+      #btn-close-3d {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+        color: #333;
+        cursor: pointer;
+        z-index: 10002;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .perspective-container {
+        perspective: 1200px;
+        z-index: 10002;
+        margin-top: -60px; /* Kéo thiệp lên cho cân đối bố cục */
+      }
+
+      .envelope-3d {
+        position: relative;
+        width: 320px;
+        height: 220px;
+        transform-style: preserve-3d;
+        transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+      }
+
+      .envelope-3d.is-flipped {
+        transform: rotateY(180deg);
+        cursor: default;
+      }
+
+      /* --- CÁC MẶT CƠ BẢN --- */
+      .face-front,
+      .face-back {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      }
+
+      .face-front {
+        background: url("scr/img/A.svg") center/100% 100% no-repeat;
+        z-index: 5;
+        transform: rotateY(0deg) translateZ(1px); /* Tách lớp lên trước */
+      }
+
+      .face-back {
+        transform: rotateY(180deg) translateZ(1px); /* Tách lớp ra sau */
+        transform-style: preserve-3d;
+        z-index: 1;
+      }
+
+      /* Ruột thiệp (Mặt D) đẩy sâu xuống 2px để làm nền, nhường chỗ cho 2 nắp bật lên */
+      .env-card-inside {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("scr/img/D.svg") center/100% 100% no-repeat;
+        transform: translateZ(-2px);
+      }
+
+      /* --- CÁC NẮP 3D BẬT MỞ --- */
+      .env-flap {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d; /* Giữ nguyên môi trường 3D, KHÔNG dùng filter ở đây */
+        transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .flap-outside,
+      .flap-inside {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+      }
+
+      /* NẮP TRÊN (B & E) */
+      .env-flap-top {
+        transform-origin: top;
+        z-index: 3; /* Ưu tiên nằm đè lên nắp dưới */
+      }
+      .flap-top-out {
+        background: url("scr/img/B.svg") center/100% 100% no-repeat;
+        transform: translateZ(1px); /* Tách mặt ngoài lên 1 xíu */
+        /* ĐỔ BÓNG TRỰC TIẾP Ở ĐÂY để không phá vỡ hiệu ứng 3D của thẻ cha */
+        filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.4));
+        transition: filter 0.8s;
+      }
+      .flap-top-in {
+        background: url("scr/img/E.svg") center/100% 100% no-repeat;
+        transform: rotateX(180deg) translateZ(1px); /* Lật úp lại và tách lớp */
+      }
+
+      /* NẮP DƯỚI (C & F) */
+      .env-flap-bottom {
+        transform-origin: bottom;
+        z-index: 2;
+      }
+      .flap-bot-out {
+        background: url("scr/img/C.svg") center/100% 100% no-repeat;
+        transform: translateZ(1px);
+      }
+      .flap-bot-in {
+        background: url("scr/img/F.svg") center/100% 100% no-repeat;
+        transform: rotateX(-180deg) translateZ(1px);
+      }
+
+      /* --- GIAI ĐOẠN 3: KÍCH HOẠT MỞ NẮP --- */
+      .envelope-3d.is-opened .env-flap-top {
+        transform: rotateX(180deg);
+        z-index: 1; /* Nắp mở ra thì lùi Z-index xuống sau mặt D */
+        transition:
+          transform 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+          z-index 0s 0.8s;
+      }
+      .envelope-3d.is-opened .flap-top-out {
+        filter: drop-shadow(
+          0 0 0 rgba(0, 0, 0, 0)
+        ); /* Nắp bật lên thì giấu bóng đổ đi cho thật */
+      }
+
+      .envelope-3d.is-opened .env-flap-bottom {
+        transform: rotateX(-180deg);
+        z-index: 1;
+        /* Nắp dưới đợi 0.4s cho nắp trên bật lên trước rồi mới mở ra sau */
+        transition:
+          transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s,
+          z-index 0s 1.2s;
+      }
+    </style>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const btnOpen = document.getElementById("btn-open-3d");
+        const popup3D = document.getElementById("popup-3d");
+        const btnClose = document.getElementById("btn-close-3d");
+        const overlay3D = document.getElementById("close-overlay-3d");
+        const envelope = document.getElementById("the-envelope-3d");
+        let openTimeout;
+
+        btnOpen.onclick = () => {
+          popup3D.style.display = "flex";
+          setTimeout(() => (popup3D.style.opacity = "1"), 50);
+          document.body.style.overflow = "hidden";
+        };
+
+        envelope.onclick = () => {
+          if (!envelope.classList.contains("is-flipped")) {
+            // Lật mặt A sang mặt B/C
+            envelope.classList.add("is-flipped");
+            // Tự động kích hoạt chuỗi mở nắp sau 1.5s
+            openTimeout = setTimeout(() => {
+              envelope.classList.add("is-opened");
+            }, 1500);
+          }
+        };
+
+        const close3DPopup = () => {
+          popup3D.style.opacity = "0";
+          clearTimeout(openTimeout);
+          setTimeout(() => {
+            popup3D.style.display = "none";
+            document.body.style.overflow = "";
+            envelope.classList.remove("is-opened");
+            envelope.classList.remove("is-flipped");
+          }, 400);
+        };
+
+        btnClose.onclick = close3DPopup;
+        overlay3D.onclick = close3DPopup;
       });
     </script>
   </body>
