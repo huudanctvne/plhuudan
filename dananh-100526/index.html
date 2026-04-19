@@ -4418,8 +4418,52 @@
         background-image: url("scr/img/Gallery/glr_15_thumb.jpg");
       }
 
+      /* --- BỐ CỤC LẠI PHẦN QUÀ MỪNG VÀ XÁC NHẬN --- */
       #SECTION9 {
-        height: 470.767px;
+        height: 580px !important; /* Chỉnh lại độ cao vùng này cho vừa vặn */
+      }
+
+      /* Nút Hộp quà bay lên trên */
+      #BUTTON3 {
+        top: 80px !important;
+      }
+
+      /* Lời ngỏ xác nhận tụt xuống dưới */
+      #HEADLINE45 {
+        top: 180px !important;
+      }
+
+      /* Form xác nhận tụt xuống dưới */
+      #FORM2 {
+        top: 280px !important;
+      }
+
+      /* Tiêu đề phần Quà mừng */
+      .gift-title {
+        position: absolute;
+        top: 35px;
+        width: 100%;
+        text-align: center;
+        font-family: "Dancing Script", cursive;
+        font-size: 24px;
+        color: rgb(128, 0, 32);
+        font-weight: 600;
+      }
+
+      /* Đường kẻ ngăn cách mảnh mai */
+      .divider-line-only {
+        position: absolute;
+        top: 150px;
+        width: 150px;
+        height: 1px;
+        background: rgba(128, 0, 32, 0.3);
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      /* Ẩn cái dải phân cách có chữ cũ (nếu ní chưa xóa) */
+      .divider-wrap {
+        display: none !important;
       }
       #BUTTON3,
       #BUTTON2 {
@@ -4746,7 +4790,7 @@
         height: 636.041px;
         top: -64px;
         left: 1px;
-        background-image: url("scr/s750x950/649340684a3700001217851c/z6642320153213_e4c91d2722a5ac970f29f3fea38950e6-20250527032523-_vagz.jpg");
+        background-image: url("scr/img/rep.jpg");
       }
       #BOX11 {
         width: 431px;
@@ -4759,7 +4803,7 @@
       }
       #HEADLINE52 {
         width: 406px;
-        top: 258.321px;
+        top: 50px;
         left: 8px;
       }
       #HEADLINE52 > .ladi-headline {
@@ -5026,7 +5070,7 @@
       /* CSS CHO KHU VỰC DỊCH VỤ KHÁCH MỜI (Đã fix đụng độ LadiPage) */
       /* CSS CẬP NHẬT: MÀU BURGUNDY & FIX ĐỘ RỘNG */
       #guest-services {
-        padding: 60px 15px;
+        padding: 40px 15px;
         background-color: #fff; /* Chuyển về nền trắng để nổi bật màu đỏ */
         font-family:
           "Montserrat", "Open Sans", sans-serif; /* Font chuẩn của LadiPage */
@@ -5811,6 +5855,10 @@
           </div>
 
           <div class="timeline-slider">
+            <div id="story-swipe-hint">
+              <!-- <div class="hint-hand"><></div> -->
+              <div class="hint-text">Vuốt để chuyển</div>
+            </div>
             <div class="slider-container">
               <div class="slide active">
                 <img src="scr/img/Story/story_1.jpg" />
@@ -6263,11 +6311,16 @@
       <div id="SECTION9" class="ladi-section">
         <div class="ladi-section-background"></div>
         <div class="ladi-container">
+          <div class="gift-title">Gửi lời chúc & Quà mừng</div>
+
+          <div class="divider-line-only"></div>
           <div data-action="true" id="BUTTON3" class="ladi-element">
             <div class="ladi-button ladi-transition">
               <div class="ladi-button-background"></div>
               <div id="BUTTON_TEXT3" class="ladi-element ladi-button-headline">
-                <p class="ladi-headline ladi-transition">Hộp quà yêu thương</p>
+                <p class="ladi-headline ladi-transition">
+                  🎁 Hộp quà yêu thương 💝
+                </p>
               </div>
             </div>
           </div>
@@ -6329,7 +6382,7 @@
                       name="message"
                       required
                       class="ladi-form-control"
-                      placeholder="Lời nhắn của bạn đến cô dâu, chú rể"
+                      placeholder="Lời nhắn của bạn đến Đan & Anh"
                     ></textarea>
                   </div>
                 </div>
@@ -6420,7 +6473,7 @@
             <h3>Hướng dẫn di chuyển</h3>
             <p>
               Dành cho các vị khách yêu quý di chuyển từ xa đến chung vui cùng
-              Đan & Ngọc Anh.
+              Hữu Đan & Ngọc Anh.
               <br /><br />
             </p>
 
@@ -6466,7 +6519,7 @@
                   target="_blank"
                   class="service-link"
                 >
-                  🚗 Ôtô
+                  🚗 Map Ôtô
                 </a>
 
                 <a
@@ -6474,7 +6527,7 @@
                   target="_blank"
                   class="service-link"
                 >
-                  🛵 Xe máy
+                  🛵 Map Xe máy
                 </a>
               </div>
 
@@ -8013,6 +8066,29 @@
 
         let auto;
 
+        // Logic cho Story Hint
+        const storyHint = document.getElementById("story-swipe-hint");
+        let storyTimer;
+
+        function showStoryHint() {
+          if (storyHint) storyHint.classList.add("active");
+        }
+
+        function hideStoryHint() {
+          if (storyHint) storyHint.classList.remove("active");
+          clearTimeout(storyTimer);
+          // Sau khi ẩn, nếu khách lại đứng im 3s thì hiện lại (hoặc bỏ dòng dưới nếu muốn hiện 1 lần duy nhất)
+          storyTimer = setTimeout(showStoryHint, 6000);
+        }
+
+        // Lắng nghe sự kiện chạm vào container để ẩn hint ngay lập tức
+        container.addEventListener("touchstart", hideStoryHint, {
+          passive: true,
+        });
+
+        // Bắt đầu đếm 3s ngay khi load xong
+        storyTimer = setTimeout(showStoryHint, 6000);
+
         // 🔥 tạo dot
         dotsContainer.innerHTML = "";
         slides.forEach((_, i) => {
@@ -8073,7 +8149,6 @@
           resetAuto();
         };
 
-        // swipe - Đã tối ưu khóa cuộn trang khi vuốt ngang
         let startX = 0;
         let startY = 0; // Thêm biến lưu tọa độ Y
 
@@ -8249,10 +8324,11 @@
         transform: translateX(-50%);
         display: flex;
         flex-direction: column;
+        line-height: 0.8;
         align-items: center;
         background: rgba(0, 0, 0, 0.4); /* Nền đen mờ 50% */
         color: #fff;
-        padding: 6px 16px;
+        padding: 8px 18px 12px 18px;
         border-radius: 16px;
         font-family: "Open Sans", sans-serif;
         font-size: 12px;
@@ -8286,6 +8362,59 @@
         50% {
           transform: translateY(5px);
         }
+      }
+
+      /* Style cho hint vuốt ngang Story */
+      #story-swipe-hint {
+        position: absolute;
+        top: 40%; /* Nằm giữa tấm ảnh */
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.4);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 15px;
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.5s ease,
+          visibility 0.5s ease;
+      }
+
+      #story-swipe-hint.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .hint-hand {
+        font-size: 24px;
+        margin-bottom: 5px;
+        animation: swipeShake 1.5s infinite;
+      }
+
+      @keyframes swipeShake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-10px);
+        }
+        75% {
+          transform: translateX(10px);
+        }
+      }
+
+      #story-swipe-hint .hint-text {
+        font-size: 11px;
+        font-family: "Open Sans", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
       }
     </style>
 
@@ -8322,6 +8451,37 @@
 
         // Kích hoạt đếm ngược 8s ngay khi khách vừa vào web
         resetIdleTimer();
+      });
+    </script>
+
+    <style>
+      /* Đổi con trỏ chuột thành biểu tượng "Vuốt/Kéo" thay vì "Bấm" */
+      #GALLERY1 .ladi-gallery-view-item {
+        cursor: grab !important;
+      }
+      #GALLERY1 .ladi-gallery-view-item:active {
+        cursor: grabbing !important;
+      }
+    </style>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Tìm tất cả các tấm ảnh trong khu vực xem chính của Gallery
+        const galleryItems = document.querySelectorAll(
+          "#GALLERY1 .ladi-gallery-view-item",
+        );
+
+        galleryItems.forEach((item) => {
+          // Bắt sự kiện 'click' và tiêu diệt nó ngay lập tức trước khi LadiPage kịp nhận ra
+          item.addEventListener(
+            "click",
+            function (e) {
+              e.stopPropagation();
+              e.preventDefault();
+            },
+            true,
+          ); // Chữ 'true' này là tuyệt chiêu bắt sự kiện từ trên không trung đó
+        });
       });
     </script>
   </body>
