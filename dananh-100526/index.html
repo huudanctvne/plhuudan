@@ -8889,12 +8889,10 @@
         let currentScrollY = 0; // Tọa độ cuộn sẽ được tính toán tự động
 
         setTimeout(() => {
-          // Kiểm tra xem khách có lỡ tay bấm mở trước khi hết 5s không,
-          // nếu thanh đang ẩn thì mới cho hiện lên
           if (wishesBar.classList.contains("hide-bar")) {
             wishesBar.classList.remove("hide-bar");
           }
-        }, 5000);
+        }, 10000);
 
         btnToggle.onclick = () => {
           wishesBar.classList.toggle("hide-bar");
@@ -8991,6 +8989,64 @@
             }
           }, 4500);
         }
+      });
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Câu thông báo cà khịa (fen sửa lại nội dung tùy ý nhé)
+        const canhBao =
+          "Chuẩn bị đồ đẹp đi ăn cưới Đan với Anh đi bồ, rớp rẻng nè 😆💌";
+
+        // 1. Chặn click chuột phải và văng cảnh báo
+        document.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
+          alert(canhBao);
+        });
+
+        // 2. Chặn các tổ hợp phím và văng cảnh báo
+        document.addEventListener("keydown", function (e) {
+          // Chặn nút F12
+          if (e.key === "F12" || e.keyCode === 123) {
+            e.preventDefault();
+            alert(canhBao);
+            return false;
+          }
+
+          // Chặn Ctrl + Shift + I/J/C
+          if (
+            e.ctrlKey &&
+            e.shiftKey &&
+            (e.key === "I" ||
+              e.key === "J" ||
+              e.key === "C" ||
+              e.key === "i" ||
+              e.key === "j" ||
+              e.key === "c")
+          ) {
+            e.preventDefault();
+            alert(canhBao);
+            return false;
+          }
+
+          // Chặn Ctrl + U (Xem Source Code)
+          if (e.ctrlKey && (e.key === "U" || e.key === "u")) {
+            e.preventDefault();
+            alert(canhBao);
+            return false;
+          }
+        });
+
+        // 3. Tặng kèm câu chửi... à nhầm câu nhắc nhở siêu to trong Console
+        // Dành cho mấy thanh niên lách luật mở F12 từ trang khác rồi mới dán link web vào
+        console.log(
+          "%c" + canhBao,
+          "color: #fff; font-size: 20px; font-weight: bold; background: #800020; padding: 20px; border-radius: 10px; font-family: sans-serif;",
+        );
+        console.log(
+          "%cChúc hai bạn trăm năm hạnh phúc! ❤️",
+          "color: #800020; font-size: 16px; font-style: italic; margin-top: 10px;",
+        );
       });
     </script>
   </body>
