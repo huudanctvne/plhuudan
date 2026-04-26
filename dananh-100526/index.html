@@ -8595,7 +8595,7 @@
       .perspective-container {
         perspective: 1200px;
         z-index: 10002;
-        margin-top: -60px; /* Kéo thiệp lên cho cân đối bố cục */
+        margin-top: -100px; /* Kéo thiệp lên cho cân đối bố cục */
       }
 
       .envelope-3d {
@@ -8747,7 +8747,7 @@
             // Tự động kích hoạt chuỗi mở nắp sau 1.5s
             openTimeout = setTimeout(() => {
               envelope.classList.add("is-opened");
-            }, 1500);
+            }, 1000);
           }
         };
 
@@ -8764,6 +8764,225 @@
 
         btnClose.onclick = close3DPopup;
         overlay3D.onclick = close3DPopup;
+      });
+    </script>
+
+    <button id="btn-toggle-wishes" aria-label="Bật/tắt lời chúc">💬</button>
+
+    <div id="wishes-bottom-bar">
+      <div id="wishes-track">
+        <div class="wish-line">Đang tải những lời chúc dễ thương...</div>
+      </div>
+    </div>
+
+    <style>
+      #btn-toggle-wishes {
+        position: fixed;
+        bottom: 150px;
+        left: 20px;
+        width: 40px;
+        height: 40px;
+        background: rgba(128, 0, 32, 0.8);
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: white;
+        cursor: pointer;
+        z-index: 10000;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s;
+      }
+      #btn-toggle-wishes:active {
+        transform: scale(0.9);
+      }
+
+      #wishes-bottom-bar {
+        position: fixed;
+        bottom: 15px;
+        right: 15px; /* 1. Đẩy sát về lề phải thay vì nằm giữa */
+        left: auto; /* 2. Hủy bỏ thuộc tính left cũ */
+        width: 80%; /* 3. Giảm độ rộng xuống để chừa chỗ bên trái cho dàn nút */
+        max-width: 320px; /* Giới hạn chiều ngang tối đa */
+
+        /* Chỉnh độ mờ (Opacity 0.6) và hiệu ứng kính mờ (Blur) */
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+
+        border: 1px solid rgba(128, 0, 32, 0.2);
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+        overflow: hidden;
+        transition:
+          height 0.4s ease,
+          transform 0.4s ease,
+          opacity 0.4s ease;
+        opacity: 1;
+        transform: translateY(0); /* 4. Hủy bỏ cái translateX(-50%) cũ */
+      }
+
+      /* Trạng thái ẩn: Chỉ cần đẩy tuột xuống lề dưới */
+      #wishes-bottom-bar.hide-bar {
+        transform: translateY(80px);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #wishes-track {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.5s ease-in-out;
+      }
+
+      /* TỐI ƯU CHO CHỮ DÀI: Cho phép rớt dòng, xếp tên và chữ theo chiều dọc */
+      .wish-line {
+        height: auto;
+        min-height: 45px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 10px 15px;
+        font-family: "Open Sans", sans-serif;
+        font-size: 10px;
+        color: #333;
+        white-space: normal; /* Cho phép chữ tự xuống dòng */
+        box-sizing: border-box; /* Đảm bảo tính toán chiều cao chính xác */
+      }
+
+      .wish-name {
+        font-weight: bold;
+        color: rgb(128, 0, 32);
+        margin-bottom: 4px;
+        font-size: 12px;
+      }
+
+      .wish-text {
+        font-style: italic;
+        line-height: 1.4;
+        /* Ép tối đa 4 dòng, dư thì hiện dấu ... */
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    </style>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const SHEET_ID = "1UcTg4DUaddS0J3cx9BPAYyXm3cdTHPE3T8K9_lmS4Pk";
+        const NAME_COL = 1;
+        const WISH_COL = 2;
+        const STATUS_COL = 4;
+
+        const btnToggle = document.getElementById("btn-toggle-wishes");
+        const wishesBar = document.getElementById("wishes-bottom-bar");
+        const track = document.getElementById("wishes-track");
+
+        let wishesData = [];
+        let currentIndex = 0;
+        let currentScrollY = 0; // Tọa độ cuộn sẽ được tính toán tự động
+
+        btnToggle.onclick = () => {
+          wishesBar.classList.toggle("hide-bar");
+        };
+
+        // Thay 123456789 bằng số gid thật của ní nhé
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=1378499844`;
+
+        fetch(url)
+          .then((res) => res.text())
+          .then((data) => {
+            const json = JSON.parse(data.substr(47).slice(0, -2));
+            const rows = json.table.rows;
+
+            wishesData = rows.filter((row) => {
+              const status =
+                row.c && row.c[STATUS_COL] && row.c[STATUS_COL].v
+                  ? row.c[STATUS_COL].v.toString().trim().toLowerCase()
+                  : "";
+              return status === "yes";
+            });
+
+            if (wishesData.length === 0) {
+              track.innerHTML =
+                '<div class="wish-line">Chưa có lời chúc nào được hiển thị.</div>';
+              wishesBar.style.height = track.children[0].offsetHeight + "px";
+              return;
+            }
+
+            renderWishes();
+
+            // Chờ DOM vẽ chữ xong mới tính toán chiều cao thật của item đầu tiên
+            setTimeout(() => {
+              wishesBar.style.height = track.children[0].offsetHeight + "px";
+              startTicker();
+            }, 100);
+          })
+          .catch((err) => {
+            console.error("Lỗi:", err);
+            track.innerHTML =
+              '<div class="wish-line">Tạm thời không tải được lời chúc.</div>';
+            wishesBar.style.height = track.children[0].offsetHeight + "px";
+          });
+
+        function renderWishes() {
+          let html = "";
+          wishesData.forEach((row) => {
+            const name =
+              row.c && row.c[NAME_COL] && row.c[NAME_COL].v
+                ? row.c[NAME_COL].v
+                : "Khách mời";
+            const wish =
+              row.c && row.c[WISH_COL] && row.c[WISH_COL].v
+                ? row.c[WISH_COL].v
+                : "Chúc hai bạn trăm năm hạnh phúc!";
+            html += `
+              <div class="wish-line">
+                <span class="wish-name">${name}</span>
+                <span class="wish-text">"${wish}"</span>
+              </div>
+            `;
+          });
+          track.innerHTML = html + html;
+        }
+
+        function startTicker() {
+          const totalOriginalWishes = wishesData.length;
+
+          // Tăng thời gian chờ lên 4.5 giây để khách kịp đọc chữ dài
+          setInterval(() => {
+            // 1. Tính toán cuộn lên dựa trên chiều cao THẬT của item vừa đi qua
+            const prevItemHeight = track.children[currentIndex].offsetHeight;
+            currentScrollY += prevItemHeight;
+
+            currentIndex++;
+            const activeItem = track.children[currentIndex];
+
+            // 2. Cuộn track chữ lên
+            track.style.transition = "transform 0.5s ease-in-out";
+            track.style.transform = `translateY(-${currentScrollY}px)`;
+
+            // 3. Khung Bar co giãn theo chiều cao của item mới hiện ra
+            wishesBar.style.height = activeItem.offsetHeight + "px";
+
+            // 4. Reset ngầm khi hết vòng lặp
+            if (currentIndex === totalOriginalWishes) {
+              setTimeout(() => {
+                track.style.transition = "none";
+                currentIndex = 0;
+                currentScrollY = 0;
+                track.style.transform = `translateY(0)`;
+                wishesBar.style.height = track.children[0].offsetHeight + "px";
+              }, 500);
+            }
+          }, 4500);
+        }
       });
     </script>
   </body>
