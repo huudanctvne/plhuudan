@@ -8769,7 +8769,7 @@
 
     <button id="btn-toggle-wishes" aria-label="Bật/tắt lời chúc">💬</button>
 
-    <div id="wishes-bottom-bar">
+    <div id="wishes-bottom-bar" class="hide-bar">
       <div id="wishes-track">
         <div class="wish-line">Đang tải những lời chúc dễ thương...</div>
       </div>
@@ -8887,6 +8887,14 @@
         let wishesData = [];
         let currentIndex = 0;
         let currentScrollY = 0; // Tọa độ cuộn sẽ được tính toán tự động
+
+        setTimeout(() => {
+          // Kiểm tra xem khách có lỡ tay bấm mở trước khi hết 5s không,
+          // nếu thanh đang ẩn thì mới cho hiện lên
+          if (wishesBar.classList.contains("hide-bar")) {
+            wishesBar.classList.remove("hide-bar");
+          }
+        }, 5000);
 
         btnToggle.onclick = () => {
           wishesBar.classList.toggle("hide-bar");
