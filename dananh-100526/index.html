@@ -8337,7 +8337,7 @@
       /* Định dạng nút nhắc nhở */
       #scroll-hint {
         position: fixed;
-        bottom: 30px; /* Nằm cách viền dưới 30px */
+        bottom: 100px; 
         left: 50%;
         transform: translateX(-50%);
         display: flex;
@@ -8892,7 +8892,7 @@
           if (wishesBar.classList.contains("hide-bar")) {
             wishesBar.classList.remove("hide-bar");
           }
-        }, 10000);
+        }, 8000);
 
         btnToggle.onclick = () => {
           wishesBar.classList.toggle("hide-bar");
@@ -8987,7 +8987,7 @@
                 wishesBar.style.height = track.children[0].offsetHeight + "px";
               }, 500);
             }
-          }, 4500);
+          }, 3000);
         }
       });
     </script>
