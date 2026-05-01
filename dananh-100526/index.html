@@ -6245,6 +6245,26 @@
         </div>
       </div>
 
+      <div
+        id="SECTION_HANDWRITING"
+        style="
+          margin-top: -60px;
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          padding: 20px 0 20px 0;
+          position: relative;
+          z-index: 10;
+        "
+      >
+        <!-- Chú ý: Đảm bảo file Na_handwriting.svg đã được copy đúng vào thư mục scr/img/ nha fen -->
+        <img
+          src="scr/img/Na_handwriting.svg"
+          alt="Na Handwriting"
+          style="width: 85%; max-width: 320px; height: auto; opacity: 0.9"
+        />
+      </div>
+
       <div id="SECTION8" class="ladi-section">
         <div class="ladi-section-background"></div>
         <div class="ladi-container">
@@ -8337,7 +8357,7 @@
       /* Định dạng nút nhắc nhở */
       #scroll-hint {
         position: fixed;
-        bottom: 100px; 
+        bottom: 100px;
         left: 50%;
         transform: translateX(-50%);
         display: flex;
@@ -8907,7 +8927,8 @@
             const json = JSON.parse(data.substr(47).slice(0, -2));
             const rows = json.table.rows;
 
-            wishesData = rows.filter((row) => {
+            // 1. Lọc ra các dòng có chữ 'yes'
+            let filteredWishes = rows.filter((row) => {
               const status =
                 row.c && row.c[STATUS_COL] && row.c[STATUS_COL].v
                   ? row.c[STATUS_COL].v.toString().trim().toLowerCase()
@@ -8915,21 +8936,34 @@
               return status === "yes";
             });
 
-            if (wishesData.length === 0) {
+            if (filteredWishes.length === 0) {
               track.innerHTML =
                 '<div class="wish-line">Chưa có lời chúc nào được hiển thị.</div>';
               wishesBar.style.height = track.children[0].offsetHeight + "px";
               return;
             }
 
+            // 2. TUYỆT CHIÊU XÁO TRỘN (SHUFFLE)
+            // Thuật toán Fisher-Yates giúp đảo thứ tự mảng ngẫu nhiên
+            for (let i = filteredWishes.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [filteredWishes[i], filteredWishes[j]] = [
+                filteredWishes[j],
+                filteredWishes[i],
+              ];
+            }
+
+            // Gán lại mảng đã xáo trộn cho biến dữ liệu chính
+            wishesData = filteredWishes;
+
             renderWishes();
 
-            // Chờ DOM vẽ chữ xong mới tính toán chiều cao thật của item đầu tiên
             setTimeout(() => {
               wishesBar.style.height = track.children[0].offsetHeight + "px";
               startTicker();
             }, 100);
           })
+          
           .catch((err) => {
             console.error("Lỗi:", err);
             track.innerHTML =
